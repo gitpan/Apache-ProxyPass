@@ -1,6 +1,6 @@
 package Apache::ProxyPass;
 
-$VERSION='0.04';
+$VERSION='0.05';
 
 use strict;
 use LWP::UserAgent ();
@@ -82,8 +82,8 @@ Apache::ProxyPass - implement ProxyPass in perl
 
 #proxy.conf looks like
 
-/foo/apache http://www.apache.org
-/foo/perl http://www.perl.com
+  /foo/apache http://www.apache.org
+  /foo/perl http://www.perl.com
 
 
 =head1 DESCRIPTION
@@ -93,4 +93,6 @@ Implement the apache mod_proxy module in perl.  Based on Apache::ProxyPassThru
 =head1 AUTHOR
 
 Michael Smith <mjs@iii.co.uk>
+
+=cut
 
