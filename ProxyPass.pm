@@ -1,6 +1,6 @@
 package Apache::ProxyPass;
 
-$VERSION='0.05';
+$VERSION='0.06';
 
 use strict;
 use LWP::UserAgent ();
@@ -25,7 +25,6 @@ sub handler {
     }
     my $list=$attr->{list};
     if (!defined(%cfg)) {
-      warn "reading in proxy configuration\n";
       open(IN,$attr->{filename});
       while(<IN>) {
         split;
@@ -41,24 +40,32 @@ sub handler {
 	last;
         }   
       }
-    my $request = new HTTP::Request $r->method, $uri;
-    my(%headers_in) = $r->headers_in;
-    while(($key,$val) = each %headers_in) {
-	$request->header($key,$val);
-    }
+    if ($uri ne $r->uri) {
+      my(%headers) = $r->headers_in();
+      my $query = $r->args() || '';
+      $uri .= "?$query" if defined $query and length $query;
+      my $request = new HTTP::Request($r->method, $uri);
+      my(%headers) = $r->headers_in;
+        for (keys(%headers)) {
+        $request->header($_, $headers{$_});
+      }
 
-    my $res = (new LWP::UserAgent)->request($request);
-    $r->content_type($res->header('Content-type'));
-    #feed reponse back into our request_rec*
-    $r->status($res->code);
-    $r->status_line(join " ", $res->code, $res->message);
-    $res->scan(sub {
+      my $res = (new LWP::UserAgent)->request($request);
+      $r->content_type($res->header('Content-type'));
+      #feed reponse back into our request_rec*
+      $r->status($res->code);
+      $r->status_line(join " ", $res->code, $res->message);
+      $res->scan(sub {
 	$r->header_out(@_);
-    });
+      });
 
-    $r->send_http_header();
-    print $res->content;
-    return OK;
+      $r->send_http_header();
+      print $res->content;
+      return OK;
+      }
+    else {
+      return DECLINED
+    }
 }
 
 1;
